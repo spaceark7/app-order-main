@@ -9,26 +9,30 @@ import {
   Image,
   Input,
   KeyboardAvoidingView,
+  Modal,
   Pressable,
   Stack,
 } from 'native-base'
 import { useRef, useState } from 'react'
 
 import { MaterialIcons } from '@expo/vector-icons'
-import { useForm, Controller } from 'react-hook-form'
+import { useForm, Controller, set } from 'react-hook-form'
 import { useLoginMutation } from 'api/loginApi'
 import Alert from 'components/Alert'
 import { setUser } from './AuthSlice'
 import { useDispatch } from 'react-redux'
 
 const logo = require('../../assets/serving-dish.png')
+const secret_key = 'yubi1234'
 
 const Login = ({ navigation }) => {
   const dispatch = useDispatch()
   const [visibility, setVisibility] = useState(false)
   const [errorCI, setErrorCI] = useState(false)
+  const [secretKey, setSecretKey] = useState('')
   const passWordInput = useRef()
   const submitButton = useRef()
+  const [modalVisible, setModalVisible] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [login, { isLoading, data: logData, status, isError, error: err }] =
     useLoginMutation({
@@ -57,9 +61,6 @@ const Login = ({ navigation }) => {
         password: data.password,
       }).unwrap()
 
-      console.log('payload:', payload)
-      console.log('payload status:', !payload.status)
-
       if (!payload.status) {
         setErrorCI(true)
         setErrorMessage('Invalid credentials')
@@ -80,20 +81,62 @@ const Login = ({ navigation }) => {
     }
   }
 
+  const verifySecretKey = () => {
+    if (secretKey === 'yubi1234') {
+      navigation.navigate('ForgotPassword')
+      setModalVisible(false)
+    } else {
+      setModalVisible(false)
+      Alert.alert('Wrong Secret Key', 'You have one more attempts')
+    }
+  }
+
   return (
     <KeyboardAvoidingView
       h={{ base: '100%', md: '100%' }}
       className='flex-1'
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
+      <Modal
+        isOpen={modalVisible}
+        onClose={() => setModalVisible(false)}
+        justifyContent='flex-end'
+        size='lg'
+      >
+        <Modal.Content className='my-auto'>
+          <Modal.CloseButton />
+          <Modal.Header>Enter Secret Key Technician ID</Modal.Header>
+          <Modal.Body>
+            You have to prove that you're official technical Yubi Tech
+            <FormControl mt='3'>
+              <FormControl.Label>Secret Key</FormControl.Label>
+              <Input
+                value={secretKey}
+                onChangeText={(value) => setSecretKey(value)}
+              />
+            </FormControl>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button flex='1' onPress={verifySecretKey}>
+              Proceed
+            </Button>
+          </Modal.Footer>
+        </Modal.Content>
+      </Modal>
       <SafeAreaView className='flex-1 pt-12 px-8'>
         <View className='items-center flex-1 justify-around'>
-          <HStack space={3} alignItems='center' justifyContent='center'>
-            <Image source={logo} alt='Logo' size='xs' />
-            <Heading pt={4} className='text-center' size='lg'>
-              App Order
-            </Heading>
-          </HStack>
+          <Button
+            onLongPress={() => setModalVisible(true)}
+            variant={'unstyled'}
+          >
+            <HStack space={3} alignItems='center' justifyContent='center'>
+              <Image source={logo} alt='Logo' size='xs' />
+
+              <Heading pt={4} className='text-center' size='lg'>
+                App Order
+              </Heading>
+            </HStack>
+          </Button>
           <View className='w-full space-y-8'>
             <View>
               <Heading className='text-center' size='lg'>
@@ -200,12 +243,12 @@ const Login = ({ navigation }) => {
             >
               <Text className='text-white font-semibold'>LOGIN</Text>
             </Button>
-            <Button
+            {/* <Button
               onPress={() => navigation.navigate('ForgotPassword')}
               variant='ghost'
             >
               Forgot password?
-            </Button>
+            </Button> */}
           </View>
         </View>
       </SafeAreaView>

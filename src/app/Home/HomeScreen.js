@@ -46,7 +46,7 @@ const HomeScreen = ({ navigation }) => {
     refetchOnMountOrArgChange: true,
     refetchOnFocus: true,
     refetchOnReconnect: true,
-    pollingInterval: 30000,
+    pollingInterval: 10000,
   })
 
   const [selectedSection, setSelectedSection] = useState('')
@@ -65,8 +65,6 @@ const HomeScreen = ({ navigation }) => {
   }
 
   const menu = useSelector((state) => state.order.menus)
-
-  console.log('menu', menu)
 
   useEffect(() => {
     if (isSuccess) setSelectedSection(sections[0])
@@ -94,7 +92,7 @@ const HomeScreen = ({ navigation }) => {
       className='flex-1 w-full  relative'
     >
       <VStack className='px-4 py-4' space={3}>
-        <FormControl>
+        {/* <FormControl>
           <Input
             returnKeyLabel='done'
             returnKeyType='done'
@@ -106,7 +104,7 @@ const HomeScreen = ({ navigation }) => {
             placeholder='Search by table number/name'
             variant='filled'
           />
-        </FormControl>
+        </FormControl> */}
 
         {isLoading && (
           <View className='flex-row items-center flex-wrap gap-x-1 w-full'>
@@ -166,9 +164,9 @@ const HomeScreen = ({ navigation }) => {
         <ModalView />
       </BottomSheetModalProvider>
 
-      <Button title='Go to Login' onPress={handleLogout}>
+      {/* <Button title='Go to Login' onPress={handleLogout}>
         Go to Login
-      </Button>
+      </Button> */}
     </Box>
   )
 }

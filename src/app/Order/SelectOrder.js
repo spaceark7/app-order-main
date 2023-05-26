@@ -11,17 +11,19 @@ import {
   Skeleton,
   VStack,
 } from 'native-base'
-import { useEffect, useLayoutEffect, useState } from 'react'
-import { View, Text, BackHandler, Alert } from 'react-native'
+import { useLayoutEffect, useMemo, useState } from 'react'
+import { View, Text, Keyboard, FlatList } from 'react-native'
 import MenuListView from './component/MenuListView'
 import { useDispatch, useSelector } from 'react-redux'
 import { resetOrderInfo } from './PickOrderSlice'
+import LoadingSpinner from 'components/LoadingSpinner'
+import useNavigationPrompt from 'utils/hooks/useNavigationPromptHooks'
+import { useCallback } from 'react'
 
 const SelectOrder = ({ route, navigation }) => {
   const {
     data: menus,
     isSuccess,
-    isFetching,
     isLoading,
     isError,
     error,
@@ -33,37 +35,35 @@ const SelectOrder = ({ route, navigation }) => {
   const dispatch = useDispatch()
   const [selectedGroup, setSelectedGroup] = useState()
   const [selectedMenu, setSelectedMenu] = useState()
+  const [search, setSearch] = useState('')
+
+  const filterMenu = useMemo(() => {
+    return selectedMenu?.filter((menu) =>
+      menu.menu_name.toLowerCase().includes(search.toLowerCase())
+    )
+  }, [search, selectedMenu])
 
   const isActiveOrder = useSelector((state) => state.order.isActive)
 
-  const handleGroupChange = (menu) => {
-    setSelectedGroup(menu.group_name)
-    setSelectedMenu(menu.menus)
-  }
+  const handleGroupChange = useCallback(
+    (menu) => {
+      setSelectedGroup(menu.group_name)
+      setSelectedMenu(menu.menus)
+    },
+    [selectedGroup, selectedMenu]
+  )
 
   const resetOrder = () => {
     dispatch(resetOrderInfo())
     navigation.goBack()
   }
 
-  const backAction = () => {
-    Alert.alert('Discard changes?', 'Are you sure you want to exit?', [
-      {
-        text: 'NO',
-        onPress: () => null,
-        style: 'cancel',
-      },
-      { text: 'YES', onPress: resetOrder },
-    ])
-    return true
-  }
-
-  useEffect(() => {
-    BackHandler.addEventListener('hardwareBackPress', backAction)
-    return () => {
-      BackHandler.removeEventListener('hardwareBackPress', backAction)
-    }
-  }, [])
+  useNavigationPrompt(
+    isActiveOrder,
+    'Discard changes?',
+    'Are you sure you want to exit?',
+    [resetOrder]
+  )
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -76,50 +76,93 @@ const SelectOrder = ({ route, navigation }) => {
     }
   }, [navigation, isSuccess])
 
+  const renderGroupItem = useCallback(
+    ({ item }) => (
+      <Button
+        variant={selectedGroup === item.group_name ? 'solid' : 'ghost'}
+        colorScheme='primary'
+        rounded='full'
+        onPress={() => handleGroupChange(item)}
+      >
+        {`${item.group_name}`}
+      </Button>
+    ),
+    [selectedGroup]
+  )
+
   return (
-    <View className='bg-white flex-1'>
-      <Text>Order Screen</Text>
-      <Text>Table : {route.params.tableName}</Text>
-      <Text>Guest : {route.params.guestNo}</Text>
-      <Text>ID : {route.params.tableId}</Text>
-      <VStack className='px-4 py-4' space={3}>
-        <FormControl>
-          <Input
-            returnKeyLabel='done'
-            returnKeyType='done'
-            InputLeftElement={
-              <Icon as={<MaterialIcons name='search' />} size={5} ml={2.5} />
-            }
-            rounded='full'
-            onSubmitEditing={() => {}}
-            placeholder='Search by menu'
-            variant='filled'
-          />
-        </FormControl>
+    <>
+      {/* {orderDetail?.message && !orderDetail.status ? (
+        <View className='justify-center items-center flex-1 gap-y-4 w-full py-4'>
+          <Text className='text-2xl font-bold'>Table is Busy!</Text>
+          <Text>
+            This table is opened by {extractUserDeviceName(orderDetail.message)}
+            , please choose another table.
+          </Text>
+        </View>
+      ) : ( */}
+      <View className='bg-white flex-1'>
+        <HStack px={4} py={4} justifyContent='space-between'>
+          <Text>{route.params.tableName}</Text>
+          <Text>Guest : {route.params.guestNo}</Text>
+        </HStack>
 
-        {isLoading && (
-          <View className='flex-row items-center flex-wrap gap-x-1 w-full'>
-            {Array.from({ length: 3 }).map((_, index) => (
-              <Skeleton
+        <VStack className='px-4 py-4' space={3}>
+          {isSuccess && (
+            <FormControl className='py-2 md:py-6'>
+              <Input
+                returnKeyLabel='done'
+                returnKeyType='done'
+                InputLeftElement={
+                  <Icon
+                    as={<MaterialIcons name='search' />}
+                    size={5}
+                    ml={2.5}
+                  />
+                }
+                value={search}
                 rounded='full'
-                className='flex-1'
-                height={6}
-                key={index}
+                onChangeText={(text) => setSearch(text)}
+                onSubmitEditing={() => {
+                  Keyboard.dismiss()
+                }}
+                placeholder='Search menu'
+                variant='filled'
               />
-            ))}
-          </View>
-        )}
+            </FormControl>
+          )}
 
-        <ScrollView
-          rounded='full'
-          width={'100%'}
-          className='h-fit'
-          horizontal={true}
-          alwaysBounceHorizontal={true}
-          showsHorizontalScrollIndicator={false}
-        >
-          <HStack rounded='full' space={3}>
-            <Button.Group variant='solid' rounded='full' space={3}>
+          {isLoading && (
+            <View className='flex-row items-center flex-wrap gap-x-1 w-full'>
+              {Array.from({ length: 3 }).map((_, index) => (
+                <Skeleton
+                  rounded='full'
+                  className='flex-1'
+                  height={6}
+                  key={index}
+                />
+              ))}
+            </View>
+          )}
+          {isSuccess && (
+            <FlatList
+              data={menus}
+              renderItem={renderGroupItem}
+              keyExtractor={(item) => item.group_name}
+              horizontal={true}
+              alwaysBounceHorizontal={true}
+              showsHorizontalScrollIndicator={false}
+            />
+          )}
+          {/* <ScrollView
+            rounded='full'
+            width={'100%'}
+            className='h-fit '
+            horizontal={true}
+            alwaysBounceHorizontal={true}
+            showsHorizontalScrollIndicator={false}
+          >
+            <HStack className='py-8 bg-gray-200' rounded='full' space={3}>
               {isSuccess &&
                 menus.map((menu, index) => (
                   <Button
@@ -134,21 +177,18 @@ const SelectOrder = ({ route, navigation }) => {
                     {`${menu.group_name}`}
                   </Button>
                 ))}
-            </Button.Group>
-          </HStack>
-        </ScrollView>
-      </VStack>
-      <Box className='flex-1  px-4'>
-        {isLoading && (
-          <View className='flex-row items-center flex-wrap justify-around gap-x-3 gap-y-4 w-full py-4'>
-            {Array.from({ length: 6 }).map((_, index) => (
-              <Skeleton rounded='md' width={'40%'} height={'30%'} key={index} />
-            ))}
-          </View>
-        )}
-        {isSuccess && <MenuListView menus={selectedMenu ?? menus[0].menus} />}
-      </Box>
-    </View>
+            </HStack>
+          </ScrollView> */}
+        </VStack>
+        <Box className='flex-1 sm:px-4'>
+          {isLoading && <LoadingSpinner message='Loading menu' />}
+          {isSuccess && (
+            <MenuListView query={search} menus={filterMenu ?? menus[0].menus} />
+          )}
+        </Box>
+      </View>
+      {/* )} */}
+    </>
   )
 }
 

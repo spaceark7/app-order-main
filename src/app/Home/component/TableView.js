@@ -7,6 +7,7 @@ import { useDispatch } from 'react-redux'
 import { setOpenModal, setTable } from '../ModalSlice'
 
 const tableImage = require('../../../assets/table.png')
+
 const TableView = ({ table, itemWidth }) => {
   const navigation = useNavigation()
 
@@ -18,6 +19,8 @@ const TableView = ({ table, itemWidth }) => {
         tableId: table.id,
         tableName: table.table_name,
       })
+    } else if (table.status === 'used') {
+      alert('Table is opened by another user')
     } else {
       dispatch(setOpenModal(true))
       dispatch(

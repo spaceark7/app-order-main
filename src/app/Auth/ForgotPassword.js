@@ -5,23 +5,18 @@ import {
   FormControl,
   HStack,
   Heading,
-  Icon,
-  Image,
   Input,
   KeyboardAvoidingView,
-  Pressable,
   Stack,
 } from 'native-base'
 import { useRef, useState } from 'react'
 
-import { MaterialIcons } from '@expo/vector-icons'
 import { useForm, Controller } from 'react-hook-form'
-import { LoginApi, useLoginMutation } from 'api/loginApi'
+import { useLoginMutation } from 'api/loginApi'
 import Alert from 'components/Alert'
 import { setUser } from './AuthSlice'
-import { useDispatch } from 'react-redux'
-
-const logo = require('../../assets/serving-dish.png')
+import { useDispatch, useSelector } from 'react-redux'
+import IPInput from 'components/IPInput'
 
 const ForgotPassword = ({ navigation }) => {
   const dispatch = useDispatch()
@@ -65,15 +60,6 @@ const ForgotPassword = ({ navigation }) => {
       console.log('error data:', error)
       setErrorMessage(error.data.message ? error.data.message : error.message)
     }
-
-    // console.log('login data:', logData)
-    // console.log('loading:', isLoading)
-    // console.log('errstatus:', isError)
-    // console.log('error:', err)
-    // console.log('status:', status)
-    // console.log('endpoint:', endpointName)
-    // const res = await LoginApi(data)
-    // navigation.navigate('Home')
   }
 
   return (
@@ -85,94 +71,34 @@ const ForgotPassword = ({ navigation }) => {
       <SafeAreaView className='flex-1 pt-12 px-8'>
         <View className='items-center flex-1 justify-around'>
           <View className='w-full space-y-12'>
+            <Button
+              className='self-start'
+              onPress={() => navigation.goBack()}
+              variant='unstyled'
+            >
+              Back
+            </Button>
             <View>
               <Heading className='' size='lg'>
-                Relax! We'll help you to recover
+                Configure Connection IP and Port
               </Heading>
 
-              <Text className=' text-gray-400'>Please enter valid email</Text>
+              <Text className='text-gray-400 max-w-sm'>
+                Please make sure you entered the correct IP and Port. Invalid
+                setting will cause application to break.
+              </Text>
             </View>
 
             <Stack space={6}>
-              {isError && <Alert message={errorMessage} status={'error'} />}
-              <Controller
-                control={control}
-                rules={{
-                  required: {
-                    value: true,
-                    message: 'Email cannot be empty',
-                  },
-                  pattern: {
-                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                    message: 'Invalid email address',
-                  },
-                }}
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <FormControl isInvalid={Boolean(errors.email)}>
-                    <Input
-                      returnKeyLabel='next'
-                      returnKeyType='next'
-                      onSubmitEditing={() => {
-                        passWordInput.current.focus()
-                      }}
-                      value={value}
-                      onChangeText={onChange}
-                      onLoginBlur={onBlur}
-                      placeholder='Email'
-                      variant='filled'
-                    />
-
-                    <FormControl.ErrorMessage>
-                      {errors?.email?.message}
-                    </FormControl.ErrorMessage>
+              <HStack space={6}>
+                <IPInput />
+                <View className='w-full'>
+                  <FormControl>
+                    <FormControl.Label>Port</FormControl.Label>
+                    <Input keyboardType='numeric' />
                   </FormControl>
-                )}
-                name='email'
-              />
-              {/* <Controller
-                name='password'
-                control={control}
-                rules={{
-                  required: {
-                    value: true,
-                    message: 'Password cannot be empty',
-                  },
-                  min: 6,
-                  minLength: {
-                    value: 6,
-                    message: 'Password must have at least 6 characters',
-                  },
-                }}
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <FormControl isInvalid={Boolean(errors.password)}>
-                    <Input
-                      ref={passWordInput}
-                      onSubmitEditing={() => {
-                        submitButton.current.focus()
-                      }}
-                      value={value}
-                      onChangeText={onChange}
-                      onBlur={onBlur}
-                      placeholder='Password'
-                      variant='filled'
-                      type={visibility ? 'text' : 'password'}
-                      InputRightElement={
-                        <Pressable onPress={handleVisibility}>
-                          <Icon
-                            as={MaterialIcons}
-                            size={5}
-                            mr={2}
-                            name={visibility ? 'visibility-off' : 'visibility'}
-                          />
-                        </Pressable>
-                      }
-                    />
-                    <FormControl.ErrorMessage>
-                      {errors.password?.message}
-                    </FormControl.ErrorMessage>
-                  </FormControl>
-                )}
-              /> */}
+                </View>
+              </HStack>
             </Stack>
 
             <Button
@@ -185,11 +111,8 @@ const ForgotPassword = ({ navigation }) => {
               //   onPress={handleSubmit(Submit)}
             >
               <Text className='text-white font-semibold'>
-                SEND VERIFICATION CODE
+                SAVE CONFIGURATION
               </Text>
-            </Button>
-            <Button onPress={() => navigation.goBack()} variant='unstyled'>
-              Back
             </Button>
           </View>
         </View>

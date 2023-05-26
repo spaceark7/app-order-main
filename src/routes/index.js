@@ -4,10 +4,12 @@ import ForgotPassword from 'app/Auth/ForgotPassword'
 
 import Login from 'app/Auth/Login'
 import HomeScreen from 'app/Home/HomeScreen'
+import ConfirmOrder from 'app/Order/ConfirmOrder'
 import OrderScreen from 'app/Order/OrderDetailScreen'
 import SelectOrder from 'app/Order/SelectOrder'
 import CheckoutButton from 'app/Order/component/CheckoutButton'
-import NotificationButton from 'components/NotificationButton'
+import LogoutButton from 'components/LogoutButton'
+// import NotificationButton from 'components/NotificationButton'
 import UserHeaderButton from 'components/UserHeaderButton'
 import { useSelector } from 'react-redux'
 
@@ -20,11 +22,6 @@ const Route = () => {
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
-        gestureEnabled: true,
-        gestureDirection: 'horizontal',
-      }}
-      options={{
-        gestureEnabled: true,
       }}
     >
       {user ? (
@@ -41,7 +38,7 @@ const Route = () => {
               headerLeftContainerStyle: {
                 marginLeft: 20,
               },
-              headerRight: () => <NotificationButton />,
+              headerRight: () => <LogoutButton />,
               headerRightContainerStyle: {
                 marginRight: 20,
               },
@@ -67,11 +64,21 @@ const Route = () => {
               title: route.params.tableName,
               headerTitleAlign: 'center',
               headerShown: true,
-              gestureEnabled: true,
               headerRight: isMenuNotEmpty && (() => <CheckoutButton />),
               headerRightContainerStyle: {
                 marginRight: 20,
               },
+            })}
+          />
+          <Stack.Screen
+            name='confirm-order'
+            component={ConfirmOrder}
+            animationTypeForReplace='push'
+            options={({ route }) => ({
+              title: 'Confirm Order',
+              headerTitleAlign: 'center',
+              headerShown: true,
+              gestureEnabled: true,
             })}
           />
         </>

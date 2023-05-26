@@ -35,9 +35,7 @@ const TableListView = ({ section }) => {
   }, [width])
   const itemWidth = width / numColumns - 32
   const render = useCallback(
-    ({ item }) => (
-      <TableView key={item.id} table={item} itemWidth={itemWidth} />
-    ),
+    ({ item }) => <TableView table={item} itemWidth={itemWidth} />,
     [itemWidth]
   )
 
@@ -46,9 +44,10 @@ const TableListView = ({ section }) => {
       numColumns={numColumns}
       data={selectedTable}
       renderItem={render}
-      maxToRenderPerBatch={12}
+      maxToRenderPerBatch={5}
       updateCellsBatchingPeriod={100}
       keyExtractor={(selectedTable) => selectedTable.id.toString()}
+      extraData={selectedTable}
     />
   )
 }
